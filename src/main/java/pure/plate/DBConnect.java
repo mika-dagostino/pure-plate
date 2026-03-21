@@ -45,6 +45,10 @@ public class DBConnect {
         }
     }
 
+    public void runStatement() {
+        if (!isConnected()) return;
+    }
+
     public void closeDBConnection() {
         if (conn == null) return;
 
