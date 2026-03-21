@@ -1,6 +1,12 @@
 package pure.plate;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 
 import com.ibm.db2.jcc.DB2Driver;
@@ -47,12 +53,17 @@ public class DBConnect {
         }
     }
 
-    public ArrayList<Object> runSelectStatement(String sqlString) {
+    public ArrayList<Object> runSelectStatement(String sqlString, Object... params) {
         if (!isConnected()) return new ArrayList<>();
 
         try {
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sqlString);
+            PreparedStatement stmt = conn.prepareStatement(sqlString);
+            for (int i = 0; i < params.length; i++) {
+                stmt.setObject(i + 1, params[i]);
+            }
+
+
+            ResultSet rs = stmt.executeQuery();
             ResultSetMetaData metaData = rs.getMetaData();
             int columnCount = metaData.getColumnCount();
             ArrayList<Object> results = new ArrayList<>();
@@ -72,10 +83,11 @@ public class DBConnect {
 
             rs.close();
             stmt.close();
-
             return results;
+
         } catch (SQLException e) {
             System.out.println("Error running: " + sqlString);
+            e.printStackTrace();
             return new ArrayList<>();
         }
     }
