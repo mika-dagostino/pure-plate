@@ -10,4 +10,9 @@ public class Input {
         System.out.print(label);
         return sc.nextInt();
     }
+
+    public static String getString(String label) {
+        System.out.print(label);
+        return sc.next();
+    }
 }
