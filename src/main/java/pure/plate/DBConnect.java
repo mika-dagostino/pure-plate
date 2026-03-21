@@ -6,7 +6,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 
 import com.ibm.db2.jcc.DB2Driver;
@@ -92,14 +91,18 @@ public class DBConnect {
         }
     }
 
-    public void runStatement(String sqlString) {
+    public void runStatement(String sqlString, Object... params) {
         if (!isConnected()) return;
 
-        try {
-            Statement stmt = conn.createStatement();
-            stmt.execute(sqlString);
+        try (PreparedStatement stmt = conn.prepareStatement(sqlString)) {
+            for (int i = 0; i < params.length; i++) {
+                stmt.setObject(i + 1, params[i]);
+            }
+            int rowsAffected = stmt.executeUpdate();
+            System.out.println("Statement executed successfully, rows affected: " + rowsAffected);
         } catch (SQLException e) {
             System.out.println("Error running: " + sqlString);
+            e.printStackTrace();
         }
     }
 

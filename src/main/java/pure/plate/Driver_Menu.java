@@ -1,5 +1,6 @@
 package pure.plate;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -7,7 +8,7 @@ import java.util.ArrayList;
     
 public class Driver_Menu {
     private final DBConnect db;
-    private int driver_id;
+    private int driverId;
 
     public Driver_Menu(DBConnect db) {
         this.db = db;
@@ -52,7 +53,7 @@ public class Driver_Menu {
         }
     }
 
-    public static void displayActionMenu() {
+    public void displayActionMenu() {
         try {
                 System.out.println("1. View Delivery History");
                 System.out.println("2. View Driver Requests");
@@ -78,15 +79,26 @@ public class Driver_Menu {
         try {
             String name = pure.plate.Input.getString("Enter your name: ");
             String email = pure.plate.Input.getString("Enter your email: ");
+            String address = pure.plate.Input.getString("Enter your address: ");
+            String phoneNumber = pure.plate.Input.getString("Enter your phone number: ");
+            String licensePlate = pure.plate.Input.getString("Enter your license plate: ");
+            String carModel = pure.plate.Input.getString("Enter your car model: ");
             String password = pure.plate.Input.getString("Enter your password: ");
-            // Here you can add code to save the driver's information to a database or file
+            int userid = generateUserId();
+            
             System.out.println(("Registering: " + name + " " + email + " " + password));
 
+            // Register the user information
+            String registerUserQuery = Files.readString(Paths.get("src/sql_queries/register_user.sql"));
+            db.runStatement(registerUserQuery, userid, address, email, phoneNumber, name, password);
             
+            // Register the driver-specific information
+            String registerDriverQuery = Files.readString(Paths.get("src/sql_queries/driver/register_driver.sql"));
+            db.runStatement(registerDriverQuery,licensePlate, carModel);
 
             System.out.println("Driver registered successfully!");
             return true;
-        } catch (Exception e) {
+        } catch (IOException e) {
             System.out.println("An error occurred during registration: " + e.getMessage());
             return false;
         }
@@ -106,25 +118,30 @@ public class Driver_Menu {
             ArrayList<Object> result = db.runSelectStatement(query, driver_id, password);
             if (result.get(0).equals(1)) {
                 System.out.println("Login successful for user: " + driver_id);
-                this.driver_id = driver_id;
+                this.driverId = driver_id;
                 return true;
             } else {
                 System.out.println("Invalid driver ID or password.");
                 return false;
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             System.out.println("An error occurred during login: " + e.getMessage());
             return false;
         }
     }
 
-    public static void ViewDeliveryHistory() {
+    public void ViewDeliveryHistory() {
         System.out.println("Viewing delivery history...");
-        String query = Files.readString(Paths.get("src/sql_queries/customer/order_history.sql"));
-        System.out.println(db.runSelectStatement(query, 8));}
+        String query;
+        try {
+            query = Files.readString(Paths.get("src/sql_queries/customer/order_history.sql"));
+            System.out.println(db.runSelectStatement(query, 8));
+        } catch (IOException ex) {
+            System.getLogger(Driver_Menu.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        }
     }
 
-    public static void ViewDriverRequests() {
+    public void ViewDriverRequests() {
         System.out.println("Viewing driver requests...");
     }
 
@@ -134,5 +151,10 @@ public class Driver_Menu {
 
     public static void RejectDeliveryRequest() {
         System.out.println("Rejecting delivery request...");
+    }
+
+    public int generateUserId() {
+        long timestamp = System.currentTimeMillis() % 1000000000; // Get the last 9 digits of the current timestamp
+        return (int) timestamp;
     }
 }
