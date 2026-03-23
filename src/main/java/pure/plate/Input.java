@@ -8,11 +8,14 @@ public class Input {
 
     public static int getInt(String label) {
         System.out.print(label);
-        return sc.nextInt();
+        int value = sc.nextInt();
+        sc.nextLine(); 
+        return value;
     }
 
     public static String getString(String label) {
         System.out.print(label);
-        return sc.next();
+        return sc.nextLine();
     }
+
 }

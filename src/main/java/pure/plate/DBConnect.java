@@ -52,11 +52,14 @@ public class DBConnect {
         }
     }
 
-    public ArrayList<Object> runSelectStatement(String sqlString, Object... params) {
-        if (!isConnected()) return new ArrayList<>();
+    public QueryResult runSelectStatement(String sqlString, Object... params) {
+        if (!isConnected()) return new QueryResult(new ArrayList<>(), new ArrayList<>());
 
         try {
+            
             PreparedStatement stmt = conn.prepareStatement(sqlString);
+            
+            // Set parameters
             for (int i = 0; i < params.length; i++) {
                 stmt.setObject(i + 1, params[i]);
             }
@@ -65,29 +68,30 @@ public class DBConnect {
             ResultSet rs = stmt.executeQuery();
             ResultSetMetaData metaData = rs.getMetaData();
             int columnCount = metaData.getColumnCount();
-            ArrayList<Object> results = new ArrayList<>();
 
+            // Get column names
+            ArrayList<String> columns = new ArrayList<>();
+            for (int i = 1; i <= columnCount; i++) {
+                columns.add(metaData.getColumnName(i));
+            }
+
+            // Get rows
+            ArrayList<ArrayList<Object>> rows = new ArrayList<>();
             while (rs.next()) {
-                if (columnCount == 1) {
-                    results.add(rs.getObject(1));
-                } else {
-                    ArrayList<Object> row = new ArrayList<>();
-                    for (int i = 1; i <= columnCount; i++) {
-                        row.add(rs.getObject((i)));
-                    }
-
-                    results.add(row);
+                ArrayList<Object> row = new ArrayList<>();
+                for (int i = 1; i <= columnCount; i++) {
+                    row.add(rs.getObject((i)));
                 }
+                rows.add(row);
             }
 
             rs.close();
             stmt.close();
-            return results;
+            return new QueryResult(columns, rows);
 
         } catch (SQLException e) {
             System.out.println("Error running: " + sqlString);
-            e.printStackTrace();
-            return new ArrayList<>();
+            return new QueryResult(new ArrayList<>(), new ArrayList<>());
         }
     }
 
