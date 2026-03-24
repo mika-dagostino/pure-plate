@@ -1,2 +1,1 @@
-SELECT * FROM Orders
-WHERE CUSTOMERID = ?;
+SELECT * FROM CustomerOrders WHERE USERID = ?;
