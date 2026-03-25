@@ -102,8 +102,8 @@ public class DBConnect {
             for (int i = 0; i < params.length; i++) {
                 stmt.setObject(i + 1, params[i]);
             }
-            int rowsAffected = stmt.executeUpdate();
-            System.out.println("Statement executed successfully, rows affected: " + rowsAffected);
+            stmt.executeUpdate();
+        //    System.out.println("Statement executed successfully, rows affected: " + rowsAffected);
         } catch (SQLException e) {
             System.out.println("Error running: " + sqlString);
             e.printStackTrace();

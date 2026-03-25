@@ -2,6 +2,7 @@ package pure.plate;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.math.BigDecimal;
 
 public class CustomerController {
     private final DBConnect db;
@@ -41,7 +42,7 @@ public class CustomerController {
             String address = Input.getString("Enter your address: ");
             String phoneNumber = Input.getString("Enter your phone number: ");
 
-            int userId = generateUserId();
+            int userId = generateId();
 
             String queryRegisterUser = Files.readString(Paths.get("src/sql_queries/register_user.sql"));
             db.runStatement(queryRegisterUser, userId, address, email, phoneNumber, name, password);
@@ -115,8 +116,37 @@ public class CustomerController {
     private void orderCart() throws Exception {
         String creditCardNumber = Input.getString("Enter your credit card number: ");
 
-        // TODO: Store the order in the database, store payment information and remove all items from the cart
-        // TODO: Store each meal item in the database and create the new order
+        int paymentId = generateId();
+        int orderId = generateId();
+        int deliveryDriverId = 1;
+
+        String queryGetTotalPrice = Files.readString(Paths.get("src/sql_queries/customer/get_total_price.sql"));
+        QueryResult result = db.runSelectStatement(queryGetTotalPrice, this.customerId);
+        BigDecimal totalPrice = (BigDecimal) result.rows.getFirst().getFirst();
+
+        System.out.println(totalPrice);
+
+        // Store payment information
+        String queryStorePaymentInformation = Files.readString(Paths.get("src/sql_queries/customer/store_payment_information.sql"));
+        db.runStatement(queryStorePaymentInformation, paymentId, totalPrice, creditCardNumber);
+
+        System.out.println("111111");
+
+        // Create the new order
+        String queryCreateOrder = Files.readString(Paths.get("src/sql_queries/customer/create_order.sql"));
+        db.runStatement(queryCreateOrder, orderId, paymentId, this.customerId, deliveryDriverId, "preparing", totalPrice);
+
+        System.out.println("222222");
+
+        // Store each meal item in the database
+        String queryStoreMealItems = Files.readString(Paths.get("src/sql_queries/customer/store_meal_items.sql"));
+        db.runStatement(queryStoreMealItems, orderId, this.customerId);
+
+        System.out.println("333333");
+
+        // Remove all items from the cart
+        String queryRemoveItemsFromCart = Files.readString(Paths.get("src/sql_queries/customer/remove_items_from_cart.sql"));
+        db.runStatement(queryRemoveItemsFromCart, this.customerId);
 
         System.out.println("Order placed successfully.");
     }
@@ -174,6 +204,22 @@ public class CustomerController {
             return;
         }
 
+        String queryCheckReview = Files.readString(Paths.get("src/sql_queries/customer/check_review.sql"));
+        QueryResult result1 = db.runSelectStatement(queryCheckReview, this.customerId, mealId);
+        int firstValue = (int) result1.rows.getFirst().getFirst();
+        if (firstValue > 0) {
+            System.out.println("You have already written a review for this meal.");
+            return;
+        }
+
+        String queryCheckMeal = Files.readString(Paths.get("src/sql_queries/customer/check_meal.sql"));
+        QueryResult result2 = db.runSelectStatement(queryCheckMeal, this.customerId, mealId);
+        int firstValue2 = (int) result2.rows.getFirst().getFirst();
+        if (firstValue2 == 0) {
+            System.out.println("You have not ordered this meal yet.");
+            return;
+        }
+
         String queryWriteReview = Files.readString(Paths.get("src/sql_queries/customer/write_review.sql"));
         db.runStatement(queryWriteReview, this.customerId, mealId, review, rating);
     }
@@ -184,7 +230,7 @@ public class CustomerController {
         Formatting.printTable(result);
     }
 
-    public int generateUserId() {
+    public int generateId() {
         long timestamp = System.currentTimeMillis() % 1000000000; 
         return (int) timestamp;
     }
