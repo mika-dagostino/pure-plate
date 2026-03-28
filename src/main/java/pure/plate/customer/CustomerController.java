@@ -1,9 +1,6 @@
 package pure.plate.customer;
 
-import pure.plate.DBConnect;
-import pure.plate.Formatting;
-import pure.plate.Input;
-import pure.plate.QueryResult;
+import pure.plate.*;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;

@@ -2,6 +2,8 @@ package pure.plate.customer;
 
 import pure.plate.DBConnect;
 import pure.plate.QueryResult;
+import pure.plate.Utils;
+import pure.plate.Validator;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;

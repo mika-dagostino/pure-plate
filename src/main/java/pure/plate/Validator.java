@@ -1,6 +1,4 @@
-package pure.plate.customer;
-
-import pure.plate.Input;
+package pure.plate;
 
 public class Validator {
     public static int getUserID(String prompt) {

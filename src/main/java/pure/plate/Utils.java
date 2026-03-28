@@ -1,4 +1,4 @@
-package pure.plate.customer;
+package pure.plate;
 
 public class Utils {
     public static final int nbrOfMeals = 104;
