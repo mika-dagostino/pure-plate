@@ -35,15 +35,6 @@ public class WelcomeMenu {
                     this.db.closeDBConnection();
                     System.exit(0);
                 }
-                case 4 -> { 
-                    try {
-                        String query = Files.readString(Paths.get("src/sql_queries/customer/order_history.sql"));
-                        System.out.println(this.db.runSelectStatement(query, 8));}
-                    catch (Exception e) {
-                        System.out.println("Error reading SQL file: " + e.getMessage());
-                    } 
-
-                    }
                 default -> {
                     System.out.println("Invalid option, please try again.");
                 }

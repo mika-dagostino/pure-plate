@@ -1,1 +1,0 @@
-SELECT * FROM CustomerOrders WHERE USERID = ?;

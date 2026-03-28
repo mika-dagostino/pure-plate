@@ -65,14 +65,14 @@ public class CustomerController {
     }
 
     public void viewOrderHistory() throws Exception {
-        String query = Files.readString(Paths.get("src/sql_queries/customer/order_history.sql"));
+        String query = Files.readString(Paths.get("src/sql_queries/customer/orders/history.sql"));
         QueryResult result = db.runSelectStatement(query, this.customerId);
         Formatting.printTable(result);
     }
 
     public void searchForMeals() throws Exception {
         String searchTerm = Input.getString("Enter the search term (type 'all' to search all meals): ");
-        String query = Files.readString(Paths.get("src/sql_queries/customer/search_for_meals.sql"));
+        String query = Files.readString(Paths.get("src/sql_queries/customer/meals/search.sql"));
         if (searchTerm.equals("all")) {
             searchTerm = "%";
         }
@@ -89,7 +89,7 @@ public class CustomerController {
     }
 
     public void writeReview() throws Exception {
-        String querySeeMealsOrdered = Files.readString(Paths.get("src/sql_queries/customer/see_meals_ordered.sql"));
+        String querySeeMealsOrdered = Files.readString(Paths.get("src/sql_queries/customer/reviews/orderedMeals.sql"));
         QueryResult result = db.runSelectStatement(querySeeMealsOrdered, this.customerId);
         Formatting.printTable(result);
         
@@ -99,7 +99,7 @@ public class CustomerController {
 
         if (rating == -1 || mealId == -1 || review.equals("esc")) return;
 
-        String queryCheckReview = Files.readString(Paths.get("src/sql_queries/customer/check_review.sql"));
+        String queryCheckReview = Files.readString(Paths.get("src/sql_queries/customer/reviews/checkReviews.sql"));
         QueryResult result1 = db.runSelectStatement(queryCheckReview, this.customerId, mealId);
         int firstValue = (int) result1.rows.getFirst().getFirst();
         if (firstValue > 0) {
@@ -107,7 +107,7 @@ public class CustomerController {
             return;
         }
 
-        String queryCheckMeal = Files.readString(Paths.get("src/sql_queries/customer/check_meal.sql"));
+        String queryCheckMeal = Files.readString(Paths.get("src/sql_queries/customer/reviews/checkMeal.sql"));
         QueryResult result2 = db.runSelectStatement(queryCheckMeal, this.customerId, mealId);
         int firstValue2 = (int) result2.rows.getFirst().getFirst();
         if (firstValue2 == 0) {
@@ -115,12 +115,12 @@ public class CustomerController {
             return;
         }
 
-        String queryWriteReview = Files.readString(Paths.get("src/sql_queries/customer/write_review.sql"));
+        String queryWriteReview = Files.readString(Paths.get("src/sql_queries/customer/reviews/create.sql"));
         db.runStatement(queryWriteReview, this.customerId, mealId, review, rating);
     }
 
     public void viewMyInformation() throws Exception {
-        String query = Files.readString(Paths.get("src/sql_queries/customer/my_information.sql"));
+        String query = Files.readString(Paths.get("src/sql_queries/customer/user/info.sql"));
         QueryResult result = db.runSelectStatement(query, this.customerId);
         Formatting.printTable(result);
     }

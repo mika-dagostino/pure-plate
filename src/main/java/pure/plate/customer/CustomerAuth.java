@@ -22,7 +22,7 @@ public class CustomerAuth {
 
             if (customerId == -1 || password.equals("esc")) return -1;
 
-            String query = Files.readString(Paths.get("src/sql_queries/customer/login.sql"));
+            String query = Files.readString(Paths.get("src/sql_queries/customer/auth/login.sql"));
             QueryResult result = db.runSelectStatement(query, customerId, password);
 
             if (result.rows.getFirst().getFirst().equals(1)) {
@@ -52,11 +52,11 @@ public class CustomerAuth {
             String registerUser = Files.readString(Paths.get("src/sql_queries/register_user.sql"));
             db.runStatement(registerUser, userId, address, email, phoneNumber, name, password);
 
-            String createUser = Files.readString(Paths.get("src/sql_queries/customer/register.sql"));
+            String createUser = Files.readString(Paths.get("src/sql_queries/customer/auth/register.sql"));
             db.runStatement(createUser, userId);
 
             int cartId = Utils.generateId();
-            String createCart = Files.readString(Paths.get("src/sql_queries/customer/register_new_cart.sql"));
+            String createCart = Files.readString(Paths.get("src/sql_queries/customer/cart/create.sql"));
             db.runStatement(createCart, cartId, userId);
 
             Utils.printWithSeparators("YOUR USER ID IS: " + userId);

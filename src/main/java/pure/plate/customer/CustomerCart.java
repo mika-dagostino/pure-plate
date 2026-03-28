@@ -13,7 +13,7 @@ public class CustomerCart {
     }
 
     protected QueryResult viewCart(int customerId, boolean doesPrint) throws Exception {
-        String query = Files.readString(Paths.get("src/sql_queries/customer/view_cart.sql"));
+        String query = Files.readString(Paths.get("src/sql_queries/customer/cart/view.sql"));
         QueryResult result = db.runSelectStatement(query, customerId);
 
         if (doesPrint) {
@@ -22,6 +22,11 @@ public class CustomerCart {
         }
 
         return result;
+    }
+
+    private void updateCartTotal(int customerId) throws Exception {
+        String query = Files.readString(Paths.get("src/sql_queries/customer/cart/updateTotal.sql"));
+        db.runStatement(query, customerId);
     }
     
     protected void orderCart(int customerId) throws Exception {
@@ -38,19 +43,19 @@ public class CustomerCart {
 
         int paymentId = Utils.generateId();
         int orderId = Utils.generateId();
-        int deliveryDriverId = 1;
 
-        String queryStorePaymentInformation = Files.readString(Paths.get("src/sql_queries/customer/store_payment_information.sql"));
+        String queryStorePaymentInformation = Files.readString(Paths.get("src/sql_queries/customer/orders/payment.sql"));
         db.runStatement(queryStorePaymentInformation, paymentId, creditCardNumber, customerId);
 
-        String queryCreateOrder = Files.readString(Paths.get("src/sql_queries/customer/create_order.sql"));
-        db.runStatement(queryCreateOrder, orderId, paymentId, customerId, deliveryDriverId, "preparing", customerId);
+        String queryCreateOrder = Files.readString(Paths.get("src/sql_queries/customer/orders/create.sql"));
+        db.runStatement(queryCreateOrder, orderId, paymentId, customerId, "preparing", customerId);
 
-        String queryStoreMealItems = Files.readString(Paths.get("src/sql_queries/customer/store_meal_items.sql"));
+        String queryStoreMealItems = Files.readString(Paths.get("src/sql_queries/customer/orders/createItems.sql"));
         db.runStatement(queryStoreMealItems, orderId, customerId);
 
-        String queryRemoveItemsFromCart = Files.readString(Paths.get("src/sql_queries/customer/remove_items_from_cart.sql"));
+        String queryRemoveItemsFromCart = Files.readString(Paths.get("src/sql_queries/customer/cart/empty.sql"));
         db.runStatement(queryRemoveItemsFromCart, customerId);
+        updateCartTotal(customerId);
 
         Utils.printWithSeparators("Order placed successfully.");
     }
@@ -59,8 +64,9 @@ public class CustomerCart {
         int itemId = Validator.getInt("Enter the ID of the meal you want to delete: ", "meal ID", 1, Utils.nbrOfMeals);
         if (itemId == -1) return;
 
-        String query = Files.readString(Paths.get("src/sql_queries/customer/delete_item_from_cart.sql"));
+        String query = Files.readString(Paths.get("src/sql_queries/customer/cart/removeMeal.sql"));
         db.runStatement(query, customerId, itemId);
+        updateCartTotal(customerId);
     }
 
     protected void changeQuantityOfCartItem(int customerId) throws Exception {
@@ -69,8 +75,9 @@ public class CustomerCart {
 
         if (newQuantity == -1 || itemId == -1) return;
 
-        String query = Files.readString(Paths.get("src/sql_queries/customer/change_quantity_of_cart_item.sql"));
+        String query = Files.readString(Paths.get("src/sql_queries/customer/cart/updateQuantity.sql"));
         db.runStatement(query, newQuantity, customerId, itemId);
+        updateCartTotal(customerId);
     }
 
     protected void addItemToCart(int customerId) throws Exception {
@@ -79,7 +86,8 @@ public class CustomerCart {
 
         if (quantity == -1 || mealId == -1) return;
 
-        String query = Files.readString(Paths.get("src/sql_queries/customer/add_item_to_cart.sql"));
+        String query = Files.readString(Paths.get("src/sql_queries/customer/cart/addMeal.sql"));
         db.runStatement(query, customerId, mealId, quantity);
+        updateCartTotal(customerId);
     }
 }
