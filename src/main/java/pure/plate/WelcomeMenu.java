@@ -1,9 +1,9 @@
 package pure.plate;
 
+import pure.plate.customer.CustomerMenu;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.Driver;
-import java.util.HashMap;
 
 public class WelcomeMenu {
     private DBConnect db;
@@ -24,7 +24,7 @@ public class WelcomeMenu {
             int choice = Input.getInt("Please select an option: ");
             switch (choice) {
                 case 1 -> {
-                    Customer_Menu cust_menu = new Customer_Menu(this.db);
+                    CustomerMenu cust_menu = new CustomerMenu(this.db);
                     cust_menu.displayHomeMenu();
                 }
                 case 2 -> {

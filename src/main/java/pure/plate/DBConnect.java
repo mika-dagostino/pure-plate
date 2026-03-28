@@ -103,7 +103,6 @@ public class DBConnect {
                 stmt.setObject(i + 1, params[i]);
             }
             stmt.executeUpdate();
-        //    System.out.println("Statement executed successfully, rows affected: " + rowsAffected);
         } catch (SQLException e) {
             System.out.println("Error running: " + sqlString);
             e.printStackTrace();

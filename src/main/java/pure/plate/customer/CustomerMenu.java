@@ -1,24 +1,22 @@
-package pure.plate;
+package pure.plate.customer;
 
-public class Customer_Menu {
+import pure.plate.DBConnect;
+import pure.plate.Input;
+
+public class CustomerMenu {
     private final CustomerController controller;
     private boolean continueLoopWelcome = true;
     private boolean continueLoopMain = false;
 
-    public Customer_Menu(DBConnect db) {
+    public CustomerMenu(DBConnect db) {
         this.controller = new CustomerController(db);
     }
 
     public void displayHomeMenu() {
         while(continueLoopWelcome) {
             try {
-                System.out.println("\n================================================");
-                System.out.println("1. Customer Registration");
-                System.out.println("2. Customer Login");
-                System.out.println("3. Exit");
-                System.out.println("================================================\n");
-
-                int choice = pure.plate.Input.getInt("Enter your choice: ");
+                Utils.printMenu("Customer Registration", "Customer Login", "Exit");
+                int choice = Input.getInt("Enter your choice: ");
 
                 switch (choice) {
                     case 1 -> {
@@ -37,9 +35,8 @@ public class Customer_Menu {
                             displayActionMenu();
                         }
                     }
-                    case 3 -> {
-                        this.continueLoopWelcome = false;
-                    }
+                    case 3 -> this.continueLoopWelcome = false;
+
                     default -> System.out.println("Invalid choice. Please try again.");
                 }
             } catch (Exception e) {
@@ -51,16 +48,7 @@ public class Customer_Menu {
     public void displayActionMenu() {
         while(continueLoopMain) {
             try {
-                System.out.println("\n================================================");
-                System.out.println("1. View Order History");
-                System.out.println("2. Search for meals");
-                System.out.println("3. View Cart");
-                System.out.println("4. Write a review");
-                System.out.println("5. View my information");
-                System.out.println("6. Logout");
-                System.out.println("================================================\n");
-
-
+                Utils.printMenu("View Order History", "Search for meals", "View Cart", "Write a review", "View my information", "Logout");
                 int choice = Input.getInt("Enter your choice: ");
 
                 switch (choice) {
@@ -74,7 +62,6 @@ public class Customer_Menu {
                         System.out.println("Logging out...");
                         this.continueLoopWelcome = true;
                         this.continueLoopMain = false;
-                        System.exit(0);
                     }
                     default -> System.out.println("Invalid choice. Please try again.");
                 }
