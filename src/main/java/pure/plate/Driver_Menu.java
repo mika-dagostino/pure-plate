@@ -5,9 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
-import javax.management.Query;
-
-    
 public class Driver_Menu {
     private final DBConnect db;
     private int driverId;
@@ -20,15 +17,14 @@ public class Driver_Menu {
     public void displayHomeMenu() {
         while (true) {
             try {
-                    System.out.println("1. Driver Registration");
-                    System.out.println("2. Driver Login");
-                    System.out.println("3. Exit");
+                    Utils.printMenu("Driver Registration", "Driver Login", "Exit");
+
                     int choice = pure.plate.Input.getInt("Enter your choice: ");
                     switch (choice) {
                         case 1 -> {
                             boolean success = register();
                             if (success) {
-                                System.out.println("Please login to continue.");
+                                displayActionMenu();
                             } else {
                                 System.out.println("Registration failed. Please try again.");
                             }
@@ -37,7 +33,6 @@ public class Driver_Menu {
                         case 2 -> {
                             boolean success = login();
                             if (success) {
-                                System.out.println("Login successful!");
                                 displayActionMenu();
                             } else {
                                 System.out.println("Login failed. Please try again.");
@@ -59,10 +54,8 @@ public class Driver_Menu {
     public void displayActionMenu() {
         while (true) {
             try {
-                    System.out.println("1. View Delivery History");
-                    System.out.println("2. Get a New Delivery");
-                    System.out.println("3. View Current Deliveries");
-                    System.out.println("4. Logout");
+                    Utils.printMenu("View Delivery History", "Get a new Delivery", "View Current Deliveries", "Update a Delivery Status", "Logout");
+
                     int choice = pure.plate.Input.getInt("Enter your choice: ");
                     switch (choice) {
                         case 1 -> {
@@ -75,6 +68,9 @@ public class Driver_Menu {
                             ViewCurrentDeliveries();
                         }
                         case 4 -> {
+                            UpdateDeliveryStatus();
+                        }
+                        case 5 -> {
                             System.out.println("Logging out...");
                             this.driverId = -1; // Reset driver ID on logout
                             return;
@@ -89,16 +85,16 @@ public class Driver_Menu {
 
     public boolean register() {
         try {
-            String name = pure.plate.Input.getString("Enter your name: ");
-            String email = pure.plate.Input.getString("Enter your email: ");
-            String address = pure.plate.Input.getString("Enter your address: ");
-            String phoneNumber = pure.plate.Input.getString("Enter your phone number: ");
-            String licensePlate = pure.plate.Input.getString("Enter your license plate: ");
-            String carModel = pure.plate.Input.getString("Enter your car model: ");
-            String password = pure.plate.Input.getString("Enter your password: ");
+            String name = pure.plate.Validator.getString("Enter your name: ", "Name", 3, 100);
+            String email = pure.plate.Validator.getEmail("Enter your email: ");
+            String address = pure.plate.Validator.getString("Enter your address: ", "Address", 1, 200);
+            String phoneNumber = pure.plate.Validator.getString("Enter your phone number: ", "Phone Number", 1, 20);
+            String licensePlate = pure.plate.Validator.getString("Enter your license plate: ", "License Plate", 1, 20);
+            String carModel = pure.plate.Validator.getString("Enter your car model: ", "Car Model", 1, 100);
+            String password = pure.plate.Validator.getString("Enter your password: ", "Password", 6, 100);
             int userid = generateUserId();
             
-            System.out.println(("Registering: " + name + " " + email + " " + password));
+            Utils.printWithSeparators("Successfully registered driver " + name + "\nWith email: " + email);
 
             // Register the user information
             String registerUserQuery = Files.readString(Paths.get("src/sql_queries/register_user.sql"));
@@ -108,7 +104,7 @@ public class Driver_Menu {
             String registerDriverQuery = Files.readString(Paths.get("src/sql_queries/driver/register_driver.sql"));
             db.runStatement(registerDriverQuery,userid, licensePlate, carModel, 35000);
 
-            System.out.println("Driver registered successfully!");
+            this.driverId = userid; 
             return true;
         } catch (IOException e) {
             System.out.println("An error occurred during registration: " + e.getMessage());
@@ -121,9 +117,6 @@ public class Driver_Menu {
             String driver_email = pure.plate.Input.getString("Enter your email: ");
             String password = pure.plate.Input.getString("Enter your password: ");
 
-            // Here you would add logic to verify the username and password
-            System.out.println("user: " + driver_email + ", password: " + password);
-            
             // Run the SQL query to check if the driver ID and password are correct
             String query = Files.readString(Paths.get("src/sql_queries/driver/login.sql"));
             QueryResult result = db.runSelectStatement(query, driver_email, password);
@@ -134,9 +127,8 @@ public class Driver_Menu {
                 return false;
             }
 
-
+            Utils.printWithSeparators("Login successful! \nWelcome back, " + result.rows.get(0).get(1) + "!");
             this.driverId = (int) result.rows.get(0).get(0);
-            System.out.println("Login successful for user: " + driverId);
             return true;
         } catch (IOException e) {
             System.out.println("An error occurred during login: " + e.getMessage());
@@ -226,6 +218,61 @@ public class Driver_Menu {
             Formatting.printTable(result);
         } catch (IOException e) {
             System.out.println("An error occurred while fetching current deliveries: " + e.getMessage());
+        }
+    }
+
+    public void UpdateDeliveryStatus() {
+        System.out.println("Updating delivery status...");
+        String query;
+
+        // Sanity check
+        if (this.driverId == -1) {
+            System.out.println("Driver ID not set. Please login first.");
+            return;
+        }
+
+        try {
+            query = Files.readString(Paths.get("src/sql_queries/driver/current_deliveries.sql"));
+            QueryResult result = db.runSelectStatement(query, this.driverId);
+            if (result.rows.isEmpty()) {
+                System.out.println("No current deliveries to update.");
+                return;
+            }
+            Formatting.printTable(result);
+            ArrayList<Integer> deliveryIds = new ArrayList<>();
+            for (ArrayList<Object> row : result.rows) {
+                deliveryIds.add((Integer) row.get(0)); 
+            }
+            int deliveryId = pure.plate.Input.getInt("Enter the ID of the delivery you want to update or 0 to cancel: ");
+            
+            if (deliveryId == 0) {
+                System.out.println("No delivery selected. Returning to menu.");
+                return;
+            }
+            else if (!deliveryIds.contains(deliveryId)) {
+                System.out.println("Invalid delivery ID.");
+                return;
+            }
+            
+            
+            System.out.println("Choose the new status for the delivery:");
+            Utils.printMenu("in_delivery", "delivered", "cancelled");
+            String newStatus = pure.plate.Input.getString("Choose an option: ");
+            switch (newStatus) {
+                case "1" -> newStatus = "in_delivery";
+                case "2" -> newStatus = "delivered";
+                case "3" -> newStatus = "cancelled";
+                default -> {
+                    System.out.println("Invalid status choice. Returning to menu.");
+                    return;
+                }
+            }
+
+            String updateQuery = Files.readString(Paths.get("src/sql_queries/driver/update_delivery_status.sql"));
+            db.runStatement(updateQuery, newStatus, deliveryId, this.driverId);
+            Utils.printWithSeparators("Delivery status updated successfully!");
+        } catch (IOException e) {
+            System.out.println("An error occurred while updating delivery status: " + e.getMessage());
         }
     }
 
